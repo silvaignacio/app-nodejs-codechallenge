@@ -84,7 +84,7 @@ export class TransactionService {
                             resolveOffset(message.offset);
                             await heartbeat();
                         } catch (error) {
-                            console.error(`Error processing message: ${error}`);
+                            console.error(`Error processing message: ${error} at ${message}`);
                         }
                     }
                 }, eachBatchAutoResolve: false
