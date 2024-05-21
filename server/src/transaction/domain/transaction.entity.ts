@@ -7,22 +7,22 @@ export class Transaction {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
-    @Column()
+    @Column({unique: true})
     transactionExternalId: string;
 
-    @Column()
+    @Column({nullable: true})
     accountExternalIdDebit: string;
 
-    @Column()
+    @Column({nullable: true})
     accountExternalIdCredit: string;
 
-    @Column({ type: 'enum', enum: TransferType, default: TransferType.Debit})
+    @Column({type: 'enum', enum: TransferType, default: TransferType.Debit})
     transferTypeId: TransferType;
 
     @Column('decimal')
     value: number;
 
-    @Column({ type: 'enum', enum: TransactionStatus, default: TransactionStatus.PENDING })
+    @Column({type: 'enum', enum: TransactionStatus, default: TransactionStatus.PENDING})
     transactionStatus: TransactionStatus;
 
     @CreateDateColumn()

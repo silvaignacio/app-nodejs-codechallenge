@@ -11,9 +11,19 @@ export class AntiFraudService {
 
   validateTransaction(transaction: TransactionDto): void {
     if(transaction.value > 1000) {
-        this.kafkaClient.emit('validation_fraud_result', { transactionId: transaction.transactionExternalId, status: "REJECTED"});
+        this.kafkaClient.emit('validation_fraud_results', { transactionExternalId: transaction.transactionExternalId, status: "REJECTED"})
+            .subscribe({
+                next: (value) => console.log('Notificacion enviada'),
+                error: (error) => console.log('Error al enviar el mensaje: ', error),
+                complete: () => console.log('Emisión de notificacion completada'),
+            });
         return;
     }
-    this.kafkaClient.emit('validation_fraud_result', { transactionId: transaction.transactionExternalId, status: "APPROVED"});
+    this.kafkaClient.emit('validation_fraud_results', { transactionExternalId: transaction.transactionExternalId, status: "APPROVED"})
+        .subscribe({
+            next: (value) => console.log('Notificacion enviada'),
+            error: (error) => console.log('Error al enviar el mensaje: ', error),
+            complete: () => console.log('Emisión de notificada completada'),
+        });
   }
 }

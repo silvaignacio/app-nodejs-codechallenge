@@ -1,21 +1,26 @@
-import {Body, Controller, Get, Param, Post} from '@nestjs/common';
+import {Body, Controller, Get, OnModuleInit, Param, Post} from '@nestjs/common';
 import {Transaction} from "../domain/transaction.entity";
 import {TransactionService} from "../service/transaction.service";
 import {TransactionResponse} from "../service/domain/transaction.response";
+import {TransactionDto} from "./dto/transaction.dto";
 
 @Controller('transactions')
-export class TransactionController {
-  constructor(private readonly transactionService: TransactionService) {}
+export class TransactionController implements OnModuleInit {
+    constructor(private readonly transactionService: TransactionService) {
+    }
 
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<TransactionResponse> {
-    await this.transactionService.consumeMessages('validation_fraud_result');
-    return this.transactionService.findOne(id);
-  }
+    @Get(':id')
+    async findOne(@Param('id') id: string): Promise<TransactionResponse> {
+        return this.transactionService.findOne(id);
+    }
 
-  @Post()
-  create(@Body() transaction: Transaction): Promise<Transaction> {
-    return this.transactionService.create(transaction);
-  }
+    @Post()
+    create(@Body() transaction: TransactionDto): Promise<Transaction> {
+        return this.transactionService.create(transaction);
+    }
+
+    async onModuleInit() {
+        await this.transactionService.consumeMessages('validation_fraud_results');
+    }
 
 }

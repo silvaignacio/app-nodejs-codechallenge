@@ -5,5 +5,6 @@ export class TransactionResponse {
         public readonly transactionStatus: { name: string },
         public readonly transactionType: { name: string },
         public readonly createdAt: Date,
-    ) {}
+    ) {
+    }
 }

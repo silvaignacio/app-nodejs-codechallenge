@@ -2,18 +2,27 @@ import { Module } from '@nestjs/common';
 import { AntiFraudController } from './anti-fraud.controller';
 import { AntiFraudService } from './anti-fraud.service';
 import {ClientsModule, Transport} from "@nestjs/microservices";
+import {ConfigModule, ConfigService} from "@nestjs/config";
 
 @Module({
   imports: [
-    ClientsModule.register([
+    ConfigModule.forRoot({
+        isGlobal: true,
+        envFilePath: '.env',
+    }),
+    ClientsModule.registerAsync([
       {
         name: 'KAFKA_SERVICE',
-        transport: Transport.KAFKA,
-        options: {
-          client: {
-            brokers: ['localhost:9092'],
-          }
-        },
+        inject: [ConfigService],
+        imports: [ConfigModule],
+        useFactory: (configService: ConfigService) => ({
+          transport: Transport.KAFKA,
+          options: {
+            client: {
+              brokers: configService.get<string>('KAFKA_BROKER').split(','),
+            },
+          },
+        }),
       },
     ]),
   ],
