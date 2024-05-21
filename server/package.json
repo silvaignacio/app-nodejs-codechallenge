@@ -1,8 +1,8 @@
 {
   "name": "server",
-  "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "version": "1.0.0",
+  "description": "Servicio de procesado de transacciones",
+  "author": "silvaignacio",
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
