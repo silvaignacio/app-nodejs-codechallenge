@@ -1,10 +1,9 @@
 import {Inject, Injectable} from '@nestjs/common';
 import {ClientKafka} from "@nestjs/microservices";
 import {TransactionDto} from "../dto/transaction.dto";
-import {HighValueStrategy} from "../strategy/HighValueStrategy";
-import {LowValueStrategy} from "../strategy/LowValueStrategy";
-import {ValidationStrategy} from "../strategy/ValidationStrategy";
-import {StrategySelector} from "../strategy/StrategySelector";
+import {HighValueStrategy} from "../strategy/high-value.strategy";
+import {LowValueStrategy} from "../strategy/low-value.strategy";
+import {StrategySelector} from "../strategy/strategy.selector";
 
 @Injectable()
 export class AntiFraudService {

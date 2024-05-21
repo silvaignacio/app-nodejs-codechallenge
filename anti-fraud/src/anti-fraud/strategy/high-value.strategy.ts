@@ -1,4 +1,4 @@
-import {ValidationStrategy} from "./ValidationStrategy";
+import {ValidationStrategy} from "./validation.strategy";
 import {TransactionDto} from "../dto/transaction.dto";
 
 export class HighValueStrategy implements ValidationStrategy {
