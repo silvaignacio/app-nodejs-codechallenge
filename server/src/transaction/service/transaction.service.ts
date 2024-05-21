@@ -1,4 +1,4 @@
-import {Inject, Injectable} from '@nestjs/common';
+import {Inject, Injectable, OnModuleInit} from '@nestjs/common';
 import {InjectRepository} from '@nestjs/typeorm';
 import {Repository} from 'typeorm';
 import {Transaction} from "../domain/transaction.entity";
@@ -6,22 +6,24 @@ import {TransactionStatus, TransferType} from "../domain/transaction.enum";
 import {Kafka} from "kafkajs";
 import {TransactionResponse} from "./domain/transaction.response";
 import {TransactionDto} from "../controller/dto/transaction.dto";
+import {KafkaService} from "../../kafka/kafka.service";
 
 @Injectable()
-export class TransactionService {
+export class TransactionService implements OnModuleInit {
 
-    private kafka;
+    constructor(@InjectRepository(Transaction) private transactionRepository: Repository<Transaction>,
+                private kafkaService: KafkaService){
+    }
 
-    constructor(@InjectRepository(Transaction) private transactionRepository: Repository<Transaction>, @Inject('KAFKA_BROKER') kafkaBroker: string) {
-        this.kafka = new Kafka({
-            brokers: [kafkaBroker], retry: {
-                initialRetryTime: 100, retries: 8
-            }
-        });
+    async onModuleInit() {
+       await this.kafkaService.consumeMessages('validation_fraud_results', this.update.bind(this));
     }
 
     async findOne(id: string): Promise<TransactionResponse> {
         const transaction = await this.transactionRepository.findOne({where: {id}});
+
+        this.validateFoundTransaction(transaction, id);
+
         const transferTypeName = TransferType[transaction.transferTypeId];
         return {
             transactionExternalId: transaction.transactionExternalId, transactionType: {
@@ -30,6 +32,12 @@ export class TransactionService {
                 name: transaction.transactionStatus
             }, value: transaction.value, createdAt: transaction.createdAt,
         };
+    }
+
+    private validateFoundTransaction(transaction: Transaction, id: string) {
+        if (!transaction) {
+            throw new Error(`Transaction with id ${id} not found`);
+        }
     }
 
     async update(transaction: any): Promise<void> {
@@ -57,41 +65,8 @@ export class TransactionService {
 
         const transaction = this.setValuesNewTransaction(setId, transactionDto);
 
-        await this.sendMessage('validation_fraud', JSON.stringify(transaction));
+        await this.kafkaService.sendMessage('validation_fraud', JSON.stringify(transaction));
         return this.transactionRepository.save(transaction);
-    }
-
-    async sendMessage(topic: string, message: string) {
-        const producer = this.kafka.producer();
-        await producer.connect();
-        await producer.send({
-            topic, messages: [{value: message}],
-        });
-        await producer.disconnect();
-    }
-
-    async consumeMessages(topic: string) {
-        try {
-            const consumer = this.kafka.consumer({groupId: 'fraud_topic'});
-            await consumer.connect();
-            await consumer.subscribe({topic, fromBeginning: true});
-
-            await consumer.run({
-                eachBatch: async ({batch, resolveOffset, heartbeat, isRunning, isStale}) => {
-                    for (let message of batch.messages) {
-                        try {
-                            await this.update(JSON.parse(message.value.toString()));
-                            resolveOffset(message.offset);
-                            await heartbeat();
-                        } catch (error) {
-                            console.error(`Error processing message: ${error} at ${message}`);
-                        }
-                    }
-                }, eachBatchAutoResolve: false
-            });
-        } catch (error) {
-            console.error(`Error consuming messages: ${error}`);
-        }
     }
 
     private setValuesNewTransaction(setId: () => string, transactionDto: TransactionDto): Transaction {

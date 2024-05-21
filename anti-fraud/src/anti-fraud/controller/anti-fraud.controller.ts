@@ -8,7 +8,6 @@ export class AntiFraudController implements OnModuleInit {
     constructor(private readonly appService: AntiFraudService, @Inject("KAFKA_SERVICE") private kafkaClient: ClientKafka) {
     }
 
-
     async onModuleInit() {
         this.kafkaClient.subscribeToResponseOf('validation_fraud');
         await this.kafkaClient.connect();

@@ -4,6 +4,7 @@ import {TransactionService} from "./service/transaction.service";
 import {Transaction} from "./domain/transaction.entity";
 import {TransactionController} from "./controller/transaction.controller";
 import {ConfigModule, ConfigService} from "@nestjs/config";
+import {KafkaService} from "../kafka/kafka.service";
 
 @Module({
     imports: [ConfigModule.forRoot(
@@ -26,7 +27,7 @@ import {ConfigModule, ConfigService} from "@nestjs/config";
         provide: 'KAFKA_BROKER',
         useFactory: (configService: ConfigService) => configService.get('KAFKA_BROKER'),
         inject: [ConfigService],
-    },], exports: [TransactionService], controllers: [TransactionController]
+    }, KafkaService], exports: [TransactionService], controllers: [TransactionController]
 })
 export class TransactionModule {
 }
